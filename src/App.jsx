@@ -114,7 +114,6 @@ export default function App() {
   const [showEmail, setShowEmail] = useState(false);
   const [showSafety, setShowSafety] = useState(true);   // safety popup shows on load
   const [emailDone, setEmailDone] = useState(false);
-  const [resDone, setResDone] = useState(false);
   const [email, setEmail] = useState("");
   const toggleExpand = cat => setExpanded(e => ({ ...e, [cat]: !e[cat] }));
 
@@ -386,18 +385,9 @@ export default function App() {
               <SectionLabel text="Help Us Grow" dark />
               <h3 style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:24, fontWeight:700, color:C.white, marginBottom:8 }}>Know a resource we're missing?</h3>
               <p style={{ fontSize:14, color:"rgba(255,255,255,.5)", marginBottom:22, lineHeight:1.75 }}>Especially for rural communities — your local knowledge matters. We review every submission before it goes live.</p>
-              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <div><label style={lblD}>Resource Name</label><input style={inpDark} /></div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <div><label style={lblD}>Phone</label><input style={inpDark} /></div>
-                  <div><label style={lblD}>Website</label><input style={inpDark} /></div>
-                </div>
-                <div><label style={lblD}>Area / County Served</label><input style={inpDark} placeholder="e.g. El Paso County, Statewide" /></div>
-                <div><label style={lblD}>Category</label><select style={inpDark}>{CATEGORIES.filter(c=>c!=="All").map(c=><option key={c}>{c}</option>)}</select></div>
-                <div><label style={lblD}>Description</label><textarea rows={3} placeholder="What does this resource offer? Who qualifies?" style={{ ...inpDark, resize:"vertical" }} /></div>
-              </div>
-              {resDone ? <div style={{ marginTop:14, color:C.pink, fontWeight:600 }}>✓ Thank you — sent for review!</div>
-              : <button onClick={()=>setResDone(true)} style={{ marginTop:14, background:C.teal, color:C.white, border:"none", padding:"13px 28px", borderRadius:99, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif", width:"100%" }} onMouseEnter={e=>e.target.style.background=C.tealD} onMouseLeave={e=>e.target.style.background=C.teal}>Submit Resource →</button>}
+              <a href="https://tally.so/r/LZOB4z" target="_blank" rel="noreferrer" style={{ display:"block", background:C.teal, color:C.white, border:"none", padding:"14px 28px", borderRadius:99, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif", width:"100%", textAlign:"center", textDecoration:"none", boxSizing:"border-box", transition:"background .15s" }} onMouseEnter={e=>e.target.style.background=C.tealD} onMouseLeave={e=>e.target.style.background=C.teal}>
+                Suggest a Resource →
+              </a>
             </div>
           </div>
         )}
@@ -463,4 +453,3 @@ export default function App() {
     </div>
   );
 }
-
