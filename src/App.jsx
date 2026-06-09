@@ -1,9 +1,4 @@
-import { useState, useEffect } from "react";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const SUPABASE_URL = "https://alypejwrpoaokosckvsu.supabase.co";
-const SUPABASE_KEY = "sb_publishable_7dYcglMcIrWCoBFkafFVdA_frAk4PcC";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+import { useState } from "react";
 
 // ── UNSPLASH IMAGE IDs ────────────────────────────────────────────────────────
 const IMG = {
@@ -22,14 +17,6 @@ const C = {
   g50:"#f9f9f9", g100:"#f2f2f2",
   g200:"#e4e4e4", g400:"#999999", g600:"#555555",
 };
-
-const PLACEHOLDER_PROS = [
-  { name:"Rebecca Flores, Esq.", specialty:"Family Law Attorney", city:"Denver", firm:"Flores Family Law", bio:"15 years focused on divorce, custody, and post-decree modifications. Known for clear communication and honest timelines. Free 30-min consult for Next Step Colorado members.", recommendations:["She got me through the hardest year of my life. Honest and fair. — Jamie T.","Worth every penny. She explained everything clearly. — Renee M."] },
-  { name:"Diane Park, CDFA®", specialty:"Financial Planner · CDFA", city:"Denver", firm:"Summit Financial Planning", bio:"Certified Divorce Financial Analyst specializing in asset division, QDRO analysis, and post-divorce budgeting. Helps you understand what the settlement really means long-term.", recommendations:["I had no idea what a QDRO was. Diane walked me through everything. — Carla S."] },
-  { name:"Cara Simmons", specialty:"Divorce Coach", city:"Remote / CO", firm:"Cara Simmons Coaching", bio:"CDC-certified divorce coach and co-parenting strategist. Helps you get clear, stay sane, and make decisions that serve your future self — not your worst day.", recommendations:["Cara helped me stop reacting and start thinking. Game changer. — Melissa K."] },
-  { name:"Jennifer Walsh, Esq.", specialty:"Family Law Attorney", city:"Colorado Springs", firm:"Walsh Family Law", bio:null, recommendations:["Jennifer fought hard for me and my kids. Best attorney in the Springs. — Amanda R.","She's honest about what things will cost. No surprises. — Tanya B.","Got full custody. I can't recommend her enough. — Nicole F."] },
-  { name:"Dr. Patricia Osei", specialty:"Therapist / Counselor", city:"Aurora", firm:"Osei Counseling & Therapy", bio:null, recommendations:["Dr. Osei helped me process the grief of my marriage ending. Changed my life. — Simone L.","She specializes in divorce trauma. Worth every session. — Keisha M."] },
-];
 
 const ALL_RESOURCES = [
   { name:"211 Colorado", categories:["Legal Help","Housing & Rent","Food Assistance","Rural & All - Colorado","Utilities & Financial","Child & Youth","Mental Health","Sexual Assault","Domestic Violence","Other"], phone:"211", web:"211colorado.org", area:"Statewide", desc:"Colorado's free, confidential helpline connecting residents to health and human services statewide — food, shelter, utilities, childcare, legal help and more. Available 24/7 by phone, text or online search by ZIP code. Works everywhere in Colorado including rural areas.", emergency:true },
@@ -129,44 +116,6 @@ export default function App() {
   const [emailDone, setEmailDone] = useState(false);
   const [resDone, setResDone] = useState(false);
   const [email, setEmail] = useState("");
-  const [endorsements, setEndorsements] = useState({});
-  const [endorsed, setEndorsed] = useState({});
-  const [loadingEndorsements, setLoadingEndorsements] = useState(true);
-
-  useEffect(() => { fetchEndorsements(); }, []);
-
-  const fetchEndorsements = async () => {
-    try {
-      const { data, error } = await supabase.from("professionals").select("name, endorsements");
-      if (error) throw error;
-      const map = {};
-      data.forEach(row => { map[row.name] = row.endorsements || 0; });
-      setEndorsements(map);
-    } catch (err) {
-      console.error("Could not fetch endorsements:", err);
-    } finally {
-      setLoadingEndorsements(false);
-    }
-  };
-
-  const handleEndorse = async (proName) => {
-    if (endorsed[proName]) return;
-    setEndorsed(e => ({ ...e, [proName]: true }));
-    setEndorsements(e => ({ ...e, [proName]: (e[proName] || 0) + 1 }));
-    try {
-      const { data: existing } = await supabase.from("professionals").select("name, endorsements").eq("name", proName).single();
-      if (existing) {
-        await supabase.from("professionals").update({ endorsements: (existing.endorsements || 0) + 1 }).eq("name", proName);
-      } else {
-        await supabase.from("professionals").insert({ name: proName, endorsements: 1 });
-      }
-    } catch (err) {
-      console.error("Endorsement failed:", err);
-      setEndorsed(e => ({ ...e, [proName]: false }));
-      setEndorsements(e => ({ ...e, [proName]: Math.max(0, (e[proName] || 1) - 1) }));
-    }
-  };
-
   const toggleExpand = cat => setExpanded(e => ({ ...e, [cat]: !e[cat] }));
 
   const matchesSearch = r => {
@@ -234,63 +183,6 @@ export default function App() {
     </div>
   );
 
-  const ProCard = ({ pro }) => {
-    const count = endorsements[pro.name] || 0;
-    const hasEndorsed = endorsed[pro.name];
-    const isUnclaimed = !pro.bio;
-    return (
-      <div style={{ background:C.white, borderRadius:14, border:`1px solid ${C.g200}`, overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,.05)", transition:"box-shadow .2s, transform .15s" }}
-        onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 12px 32px rgba(0,0,0,.1)";e.currentTarget.style.transform="translateY(-3px)";}}
-        onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,.05)";e.currentTarget.style.transform="translateY(0)";}}>
-        <div style={{ height:4, background: isUnclaimed ? C.g200 : `linear-gradient(90deg, ${C.teal}, ${C.navy})` }} />
-        <div style={{ padding:"20px 18px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
-            <div style={{ flex:1, paddingRight:8 }}>
-              <div style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:18, fontWeight:700, color:C.black, lineHeight:1.2, marginBottom:3 }}>{pro.name}</div>
-              <div style={{ fontSize:12, color:C.g600, fontFamily:"'DM Sans', system-ui, sans-serif" }}>{pro.firm} · {pro.city}</div>
-            </div>
-            <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", padding:"3px 10px", borderRadius:99, background: isUnclaimed ? C.g100 : "#e8f4f3", color: isUnclaimed ? C.g400 : C.tealD, fontFamily:"'DM Sans', system-ui, sans-serif", flexShrink:0 }}>
-              {isUnclaimed ? "Community Listed" : "Claimed ✓"}
-            </span>
-          </div>
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", color:C.teal, marginBottom:10, fontFamily:"'DM Sans', system-ui, sans-serif" }}>{pro.specialty}</div>
-          {isUnclaimed && (
-            <div style={{ background:C.g50, border:`1px dashed ${C.g200}`, borderRadius:8, padding:"12px 14px", marginBottom:12 }}>
-              <div style={{ fontSize:13, color:C.g600, fontFamily:"'DM Sans', system-ui, sans-serif", lineHeight:1.6, marginBottom:8 }}>
-                <strong style={{ color:C.black }}>This listing was created by community members.</strong> The professional hasn't claimed it yet — full bio and contact info will appear once they do.
-              </div>
-              <a href="mailto:thenextstepcolorado@gmail.com" style={{ fontSize:12, fontWeight:600, color:C.teal, fontFamily:"'DM Sans', system-ui, sans-serif", textDecoration:"none" }}>
-                Are you {pro.name.split(" ")[0]} {pro.name.split(" ")[1]}? Claim this listing →
-              </a>
-            </div>
-          )}
-          {pro.bio && <div style={{ fontSize:13, color:C.g600, lineHeight:1.7, marginBottom:14, fontFamily:"'DM Sans', system-ui, sans-serif" }}>{pro.bio}</div>}
-          {pro.recommendations && pro.recommendations.length > 0 && (
-            <div style={{ marginBottom:14 }}>
-              <div style={{ fontSize:10, fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", color:C.g400, marginBottom:8, fontFamily:"'DM Sans', system-ui, sans-serif" }}>Community Recommendations · {pro.recommendations.length}</div>
-              {pro.recommendations.map((r, i) => (
-                <div key={i} style={{ fontSize:13, color:C.g600, fontFamily:"'DM Sans', system-ui, sans-serif", lineHeight:1.6, fontStyle:"italic", marginBottom: i < pro.recommendations.length-1 ? 8 : 0, paddingLeft:12, borderLeft:`2px solid ${C.pink}` }}>"{r}"</div>
-              ))}
-            </div>
-          )}
-          <div style={{ paddingTop:14, borderTop:`1px solid ${C.g200}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <div>
-              <div style={{ fontSize:13, color:C.g600, fontFamily:"'DM Sans', system-ui, sans-serif" }}>
-                👍 <strong style={{ color:C.black }}>{loadingEndorsements ? "—" : count}</strong> {count === 1 ? "endorsement" : "endorsements"}
-              </div>
-              <div style={{ fontSize:11, color:C.g400, marginTop:2, fontFamily:"'DM Sans', system-ui, sans-serif" }}>from community members</div>
-            </div>
-            <button onClick={() => handleEndorse(pro.name)} disabled={hasEndorsed} style={{ background: hasEndorsed ? C.g100 : C.teal, color: hasEndorsed ? C.g400 : C.white, border: hasEndorsed ? `1px solid ${C.g200}` : "none", padding:"8px 16px", borderRadius:99, fontSize:13, fontWeight:600, cursor: hasEndorsed ? "default" : "pointer", fontFamily:"'DM Sans', system-ui, sans-serif", transition:"background .15s" }}
-              onMouseEnter={e=>{ if(!hasEndorsed) e.target.style.background=C.tealD; }}
-              onMouseLeave={e=>{ if(!hasEndorsed) e.target.style.background=C.teal; }}>
-              {hasEndorsed ? "✓ Endorsed" : "Endorse"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div style={{ fontFamily:"'DM Sans', system-ui, sans-serif", background:C.g50, color:C.black, minHeight:"100vh", maxWidth:"100vw", overflowX:"hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -349,7 +241,6 @@ export default function App() {
         </div>
         <div style={{ display:"flex", gap:20, alignItems:"center" }}>
           <button onClick={()=>setTab("resources")} style={{ background:"none", border:"none", fontSize:13, fontWeight:500, color: tab==="resources" ? C.white : "rgba(255,255,255,.5)", cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif", padding:0 }}>Resources</button>
-          <button onClick={()=>setTab("pros")} style={{ background:"none", border:"none", fontSize:13, fontWeight:500, color: tab==="pros" ? C.white : "rgba(255,255,255,.5)", cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif", padding:0 }}>Professionals</button>
           <button onClick={()=>setShowEmail(true)} style={{ background:C.pink, color:C.black, border:"none", padding:"7px 16px", borderRadius:99, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif" }} onMouseEnter={e=>e.target.style.background=C.pinkD} onMouseLeave={e=>e.target.style.background=C.pink}>Stay Updated</button>
         </div>
       </nav>
@@ -371,7 +262,7 @@ export default function App() {
           </p>
           <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
             <button onClick={()=>setTab("resources")} style={{ background:C.teal, color:C.white, border:"none", padding:"14px 28px", borderRadius:99, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif", transition:"background .15s, transform .1s" }} onMouseEnter={e=>{e.currentTarget.style.background=C.tealD;e.currentTarget.style.transform="translateY(-1px)";}} onMouseLeave={e=>{e.currentTarget.style.background=C.teal;e.currentTarget.style.transform="translateY(0)";}}>Find Resources →</button>
-            <button onClick={()=>setTab("pros")} style={{ background:"transparent", color:"rgba(255,255,255,.7)", border:"1px solid rgba(255,255,255,.25)", padding:"14px 28px", borderRadius:99, fontSize:14, fontWeight:500, cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif" }} onMouseEnter={e=>{e.currentTarget.style.color=C.white;e.currentTarget.style.borderColor="rgba(255,255,255,.5)";}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(255,255,255,.7)";e.currentTarget.style.borderColor="rgba(255,255,255,.25)";}}>Find Professionals</button>
+            <button onClick={()=>setShowEmail(true)} style={{ background:"transparent", color:"rgba(255,255,255,.7)", border:"1px solid rgba(255,255,255,.25)", padding:"14px 28px", borderRadius:99, fontSize:14, fontWeight:500, cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif" }} onMouseEnter={e=>{e.currentTarget.style.color=C.white;e.currentTarget.style.borderColor="rgba(255,255,255,.5)";}} onMouseLeave={e=>{e.currentTarget.style.color="rgba(255,255,255,.7)";e.currentTarget.style.borderColor="rgba(255,255,255,.25)";}}>Get Notified of Updates</button>
           </div>
         </div>
       </div>
@@ -421,7 +312,7 @@ export default function App() {
       {/* ── SUB NAV ── */}
       <div style={{ background:C.white, borderBottom:`1px solid ${C.g200}`, position:"sticky", top:60, zIndex:99, boxShadow:"0 1px 8px rgba(0,0,0,.04)" }}>
         <div style={{ maxWidth:860, margin:"0 auto", display:"flex" }}>
-          {[{id:"resources",label:"Resources & Support"},{id:"pros",label:"Divorce Professionals"},{id:"coming",label:"Directory — Coming Soon"}].map(t => (
+          {[{id:"resources",label:"Resources & Support"},{id:"coming",label:"Directory — Coming Soon"}].map(t => (
             <button key={t.id} onClick={()=>setTab(t.id)} style={{ flex:1, padding:"15px 10px", background:"none", border:"none", borderBottom: tab===t.id ? `2px solid ${C.teal}` : "2px solid transparent", cursor:"pointer", fontFamily:"'DM Sans', system-ui, sans-serif", fontSize:12, fontWeight:600, color: tab===t.id ? C.teal : C.g400, whiteSpace:"nowrap", letterSpacing:"0.01em" }}>{t.label}</button>
           ))}
         </div>
@@ -511,33 +402,15 @@ export default function App() {
           </div>
         )}
 
-        {/* PROFESSIONALS */}
-        {tab==="pros" && (
-          <div>
-            <SectionLabel text="Community-Vetted" />
-            <h2 style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:"clamp(26px,4vw,38px)", fontWeight:700, lineHeight:1.1, marginBottom:10, letterSpacing:"-0.02em" }}>Divorce Professionals</h2>
-            <p style={{ fontSize:15, color:C.g600, lineHeight:1.75, marginBottom:24, maxWidth:560 }}>Attorneys, mediators, CDFAs, coaches, and paralegals recommended by Colorado women who've been there. Listings are community-sourced — professionals are invited to claim their profile.</p>
-            <div style={{ background:"#e8f4f3", border:"1px solid #b8dedd", borderRadius:10, padding:"13px 16px", marginBottom:28, display:"flex", gap:10, alignItems:"flex-start" }}>
-              <span style={{ fontSize:15, flexShrink:0 }}>💡</span>
-              <div style={{ fontSize:13, color:C.tealD, lineHeight:1.65 }}>
-                <strong>Know someone who should be here?</strong> Email us at <a href="mailto:thenextstepcolorado@gmail.com" style={{ color:C.teal, fontWeight:700 }}>thenextstepcolorado@gmail.com</a> to suggest a professional for the directory.
-              </div>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(300px,1fr))", gap:20 }}>
-              {PLACEHOLDER_PROS.map(pro => <ProCard key={pro.name} pro={pro} />)}
-            </div>
-          </div>
-        )}
-
         {/* COMING SOON */}
         {tab==="coming" && (
           <div style={{ textAlign:"center", padding:"64px 16px" }}>
             <div style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:44, color:C.g200, marginBottom:24 }}>◈</div>
-            <h2 style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:32, fontWeight:700, marginBottom:12 }}>Paid Professional Directory</h2>
-            <p style={{ fontSize:15, color:C.g600, maxWidth:400, margin:"0 auto 32px", lineHeight:1.75 }}>Paid listings for verified divorce professionals are coming soon. Community listings are already live.</p>
+            <h2 style={{ fontFamily:"'Playfair Display', Georgia, serif", fontSize:32, fontWeight:700, marginBottom:12 }}>Professional Directory</h2>
+            <p style={{ fontSize:15, color:C.g600, maxWidth:400, margin:"0 auto 32px", lineHeight:1.75 }}>A vetted directory of Colorado divorce attorneys, mediators, CDFAs, and coaches is coming soon.</p>
             <div style={{ display:"flex", flexDirection:"column", gap:12, maxWidth:300, margin:"0 auto" }}>
-              <button onClick={()=>setTab("pros")} style={{ background:C.teal, color:C.white, border:"none", padding:"14px 28px", borderRadius:99, fontFamily:"'DM Sans', system-ui, sans-serif", fontSize:14, fontWeight:600, cursor:"pointer" }} onMouseEnter={e=>e.target.style.background=C.tealD} onMouseLeave={e=>e.target.style.background=C.teal}>See Community Listings →</button>
-              <button onClick={()=>setShowEmail(true)} style={{ background:C.white, color:C.g600, border:`1px solid ${C.g200}`, padding:"14px 28px", borderRadius:99, fontFamily:"'DM Sans', system-ui, sans-serif", fontSize:14, fontWeight:500, cursor:"pointer" }}>Get Notified at Launch</button>
+              <button onClick={()=>setShowEmail(true)} style={{ background:C.teal, color:C.white, border:"none", padding:"14px 28px", borderRadius:99, fontFamily:"'DM Sans', system-ui, sans-serif", fontSize:14, fontWeight:600, cursor:"pointer" }} onMouseEnter={e=>e.target.style.background=C.tealD} onMouseLeave={e=>e.target.style.background=C.teal}>Get Notified at Launch →</button>
+              <button onClick={()=>setTab("resources")} style={{ background:C.white, color:C.g600, border:`1px solid ${C.g200}`, padding:"14px 28px", borderRadius:99, fontFamily:"'DM Sans', system-ui, sans-serif", fontSize:14, fontWeight:500, cursor:"pointer" }}>Browse Resources</button>
             </div>
           </div>
         )}
